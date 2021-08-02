@@ -11,6 +11,11 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+app.get("/urls", (req, res) => {
+  const templateVars = { urls: urlDatabase }; // refer to the above object. This can also be a direct object
+  res.render("urls_index", templateVars); // for Express, it automatically searches in the view file with .ejs
+});
+
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
