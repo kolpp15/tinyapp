@@ -56,11 +56,19 @@ app.get("/u/:shortURL", (req, res) => {
   }
 });
 
+// Edit / POST /urls/:shortURL
+app.post("/urls/:shortURL", (req, res) => {
+  const shortURL = req.params.shortURL;
+  const newLongURL = req.body.updateURL; // body parser in express //this creates a new value
+  urlDatabase[shortURL] = newLongURL;
+  res.redirect("/urls");
+});
+
 // DELETE / POST /urls/:shortURL/delete
 app.post("/urls/:shortURL/delete", (req, res) => {
   const shortURL = req.params.shortURL;
   delete urlDatabase[shortURL];
-  res.redirect('/urls');
+  res.redirect("/urls");
 });
 
 // ---------------------------------------------------------------------------------------
