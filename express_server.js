@@ -1,10 +1,16 @@
 const express = require("express");
 const morgan = require("morgan");
+// const bodyParser = require("body-parser"); //this is obsolete
 const app = express();
 const PORT = 8080; // default port 8080
 
+app.use(express.urlencoded({extended: true})); // use this instead of bodyParser
 app.use(morgan("dev"));
 app.set("view engine", "ejs");
+
+const generateRandomString = function(length = 6) {
+  return Math.random().toString(20).substr(2, length);
+};
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -18,6 +24,11 @@ app.get("/urls", (req, res) => {
 
 app.get("/urls/new", (req, res) => {
   res.render("urls_new");
+});
+
+app.post("/urls", (req, res) => {
+  console.log(req.body);
+  res.send("OK");
 });
 
 app.get("/urls/:shortURL", (req, res) => {
