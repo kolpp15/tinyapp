@@ -16,15 +16,59 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+const users = {
+  "userRandomID": {
+    id: "userRandomID",
+    email: "user@example.com",
+    password: "purple-monkey-dinosaur"
+  },
+  "user2RandomID": {
+    id: "user2RandomID",
+    email: "user2@example.com",
+    password: "dishwasher-funk"
+  }
+};
+
 // Create random strings
 const generateRandomString = function(length = 6) {
   return Math.random().toString(20).substr(2, length);
 };
 
+// new user / POST /
+app.post("/register", (req, res) => {
+
+  // both email and password needs to be filled in
+  if (req.body.email === '' || req.body.password === '') {
+    res.status(400);
+    res.send('Please fill in the Email and Password');
+  }
+  // no duplicated email addresses.
+  for (const user in users) {
+    if (req.body.email === users[user].email) {
+      res.status(400);
+      res.send("You have already registered with the same email address!");
+    }
+  }
+
+  const newID = generateRandomString();
+  const newUser = {
+    id: newID,  // this should be the same as the users key
+    email: req.body.email,
+    password: req.body.password
+  };
+
+  users[newID] = newUser;
+  console.log('all users:', users);
+  
+  res.cookie("user_id", newID);
+  res.redirect("/urls");
+});
+
 // Register / GET /register
 app.get("/register", (req, res) => {
   const templateVars = {
-    username: req.cookies.username
+    "user_id": req.cookies.user_id,
+    users: users
   };
   
   res.render("register_index", templateVars);
@@ -35,7 +79,8 @@ app.get("/register", (req, res) => {
 app.get("/urls", (req, res) => {
   const templateVars = {
     urls: urlDatabase,
-    username: req.cookies.username
+    "user_id": req.cookies.user_id,
+    users: users
   }; // refer to the above object. This can also be a direct object
   
   res.render("urls_index", templateVars); // for Express, it automatically searches in the view file with .ejs
@@ -44,7 +89,8 @@ app.get("/urls", (req, res) => {
 // url new page ********** THIS GET HAS TO BE DEFINED BEFORE /urls/:id. ROUTES SHOULD BE ORDERED FROM MOST SPECIFIC TO LEAST.
 app.get("/urls/new", (req, res) => {
   const templateVars = {
-    username: req.cookies.username
+    "user_id": req.cookies.user_id,
+    users: users
   };
 
   res.render("urls_new", templateVars);
@@ -52,17 +98,23 @@ app.get("/urls/new", (req, res) => {
 
 // Cookie / POST /login
 app.post("/login", (req, res) => {
-  const username = req.body.username; // create a new value
+  const templateVars = {
+    "user_id": req.body.user_id,
+    users: users // create a new value
+  };
 
-  res.cookie("username", username); // (name,value)
+  res.cookie("user_id", templateVars); // (name,value)
   res.redirect("/urls"); // redirect to urls page
 });
 
 // Cookie / POST / logout
 app.post("/logout", (req, res) => {
-  const username = req.body.username;
+  const templateVars = {
+    "user_id": req.body.user_id,
+    users: users
+  };
 
-  res.clearCookie("username", username);
+  res.clearCookie("user_id", templateVars);
   res.redirect("/urls");
 });
 
@@ -81,7 +133,8 @@ app.get("/urls/:shortURL", (req, res) => {
   const templateVars = {
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL],
-    username: req.cookies.username
+    "user_id": req.cookies.user_id,
+    users: users
   };
 
   res.render("urls_show", templateVars);
