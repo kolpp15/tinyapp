@@ -21,6 +21,16 @@ const generateRandomString = function(length = 6) {
   return Math.random().toString(20).substr(2, length);
 };
 
+// Register / GET /register
+app.get("/register", (req, res) => {
+  const templateVars = {
+    username: req.cookies.username
+  };
+  
+  res.render("register_index", templateVars);
+});
+
+
 // list of urls in the database object
 app.get("/urls", (req, res) => {
   const templateVars = {
