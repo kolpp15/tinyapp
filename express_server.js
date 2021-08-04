@@ -1,5 +1,6 @@
 const express = require("express");
 const morgan = require("morgan");
+const cookieParser = require('cookie-parser');
 // const bodyParser = require("body-parser"); //this is obsolete
 const app = express();
 const PORT = 8080; // default port 8080
@@ -7,6 +8,7 @@ const PORT = 8080; // default port 8080
 app.use(express.urlencoded({extended: true})); // use this instead of bodyParser
 app.use(morgan("dev"));
 app.set("view engine", "ejs");
+app.use(cookieParser());
 
 // URL Database. THIS WILL KEEP ON ADDING ON AS LONG AS THE SERVER IS LIVE
 const urlDatabase = {
@@ -21,13 +23,37 @@ const generateRandomString = function(length = 6) {
 
 // list of urls in the database object
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase }; // refer to the above object. This can also be a direct object
+  const templateVars = {
+    urls: urlDatabase,
+    username: req.cookies.username
+  }; // refer to the above object. This can also be a direct object
+  
   res.render("urls_index", templateVars); // for Express, it automatically searches in the view file with .ejs
 });
 
 // url new page ********** THIS GET HAS TO BE DEFINED BEFORE /urls/:id. ROUTES SHOULD BE ORDERED FROM MOST SPECIFIC TO LEAST.
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
+  const templateVars = {
+    username: req.cookies.username
+  };
+
+  res.render("urls_new", templateVars);
+});
+
+// Cookie / POST /login
+app.post("/login", (req, res) => {
+  const username = req.body.username; // create a new value
+
+  res.cookie("username", username); // (name,value)
+  res.redirect("/urls"); // redirect to urls page
+});
+
+// Cookie / POST / logout
+app.post("/logout", (req, res) => {
+  const username = req.body.username;
+
+  res.clearCookie("username", username);
+  res.redirect("/urls");
 });
 
 // new url redirect page *********************
@@ -42,7 +68,12 @@ app.post("/urls", (req, res) => {
 
 // parameter based on the database ID
 app.get("/urls/:shortURL", (req, res) => {
-  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
+  const templateVars = {
+    shortURL: req.params.shortURL,
+    longURL: urlDatabase[req.params.shortURL],
+    username: req.cookies.username
+  };
+
   res.render("urls_show", templateVars);
 });
 
