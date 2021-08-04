@@ -34,6 +34,24 @@ const generateRandomString = function(length = 6) {
   return Math.random().toString(20).substr(2, length);
 };
 
+  
+// // check if email/pw is registered
+// for (const user in users)
+//   if (req.body.email !== users[user]) {
+//     res.status(400);
+//     res.send('You have not registered with this credentials');
+//   }
+
+// Login Endpoint / GET /login
+app.get("/login", (req, res) => {
+  const templateVars = {
+    "user_id": req.cookies.user_id,
+    users: users
+  };
+  
+  res.render("login_index", templateVars);
+});
+
 // new user / POST /
 app.post("/register", (req, res) => {
 

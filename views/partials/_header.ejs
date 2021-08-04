@@ -13,15 +13,15 @@
     </div>
 
     <% if (user_id) { %>
-      <%=  `Logged in As: ${user_id}` %>
+      <%=  `Logged in As: ` + user_id %>
       <form method="POST" action="/logout">
         <button type = "submit" class="btn btn-dark btn-sm">Log out</button>
       </form>
     <% } else { %>
-      <form method="POST" action="/login">
-        <input type="text" name = "user_id" placeholder="User ID"> <!-- name has to match the actual object key-->
-        <button type = "submit" class="btn btn-light btn-sm">Sign In</button>
-      </form>
+      <div class="navbar-nav">
+        <a class="nav-item nav-link" href="/login">Login</a>
+        <a class="nav-item nav-link" href="/register">Register</a>
+      </div>      
     <% } %>
 
   </nav>
