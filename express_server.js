@@ -130,13 +130,17 @@ app.post("/register", (req, res) => {
 
 // list of urls in the database object
 app.get("/urls", (req, res) => {
-  const userDatabase = urlsForUser(req.cookies.user_id);
-  const templateVars = {
-    urls: userDatabase,
-    "user_id": req.cookies.user_id,
-    users: users
-  };
-  res.render("urls_index", templateVars); // for Express, it automatically searches in the view file with .ejs
+  if (req.cookies.user_id === undefined) {
+    res.redirect("/login");
+  } else {
+    const userDatabase = urlsForUser(req.cookies.user_id);
+    const templateVars = {
+      urls: userDatabase,
+      "user_id": req.cookies.user_id,
+      users: users
+    };
+    res.render("urls_index", templateVars); // for Express, it automatically searches in the view file with .ejs
+  }
 });
 
 // GET urls/new // Create New URL. Redirect to /login if not logged in
@@ -178,7 +182,7 @@ app.get("/urls/:shortURL", (req, res) => {
   //validate user with registered url
   if (userDatabase[userShortUrl] === undefined) {
     res.status(404);
-    res.send(`<html><body><p><b> Please <a href='/login'>log in</a> with a valid account. If not registered, click <a href='/register'>register</a> here!<b></body></html>`);
+    res.send(`<html><body><p><b> Please <a href='/login'>log in</a> with a valid account.<b></body></html>`);
   } else {
     const templateVars = {
       shortURL: req.params.shortURL,
@@ -241,17 +245,17 @@ app.post("/logout", (req, res) => {
 // ------------------------------------------------------------------------ OTHERS
 
 app.get("/", (req, res) => {
-  res.send("Hello!");
+  res.redirect("/urls");
 });
 
-app.get("/urls.json", (req, res) => {
-  res.json(urlDatabase);
-});
+// app.get("/urls.json", (req, res) => {
+//   res.json(urlDatabase);
+// });
 
-// direct html example. Not a good way
-app.get("/hello", (req, res) => {
-  res.send("<html><body>Hello <b>World</b></body></html>\n");
-});
+// // direct html example. Not a good way
+// app.get("/hello", (req, res) => {
+//   res.send("<html><body>Hello <b>World</b></body></html>\n");
+// });
 
 // app listening on PORT
 app.listen(PORT, () => {
