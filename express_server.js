@@ -16,6 +16,7 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+// USERS Database
 const users = {
   "userRandomID": {
     id: "userRandomID",
@@ -34,15 +35,7 @@ const generateRandomString = function(length = 6) {
   return Math.random().toString(20).substr(2, length);
 };
 
-  
-// // check if email/pw is registered
-// for (const user in users)
-//   if (req.body.email !== users[user]) {
-//     res.status(400);
-//     res.send('You have not registered with this credentials');
-//   }
-
-// Login Endpoint / GET /login
+// Login render page / GET /login
 app.get("/login", (req, res) => {
   const templateVars = {
     "user_id": req.cookies.user_id,
@@ -92,7 +85,6 @@ app.get("/register", (req, res) => {
   res.render("register_index", templateVars);
 });
 
-
 // list of urls in the database object
 app.get("/urls", (req, res) => {
   const templateVars = {
@@ -114,18 +106,24 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new", templateVars);
 });
 
-// Cookie / POST /login
+// Login Cookie / POST /login
 app.post("/login", (req, res) => {
-  const templateVars = {
-    "user_id": req.body.user_id,
-    users: users // create a new value
-  };
-
-  res.cookie("user_id", templateVars); // (name,value)
-  res.redirect("/urls"); // redirect to urls page
+  // MUST input both
+  if (req.body.email === '' || req.body.password === '') {
+    res.status(400);
+    res.send('Please fill in the Email and Password');
+  }
+  for (const user in users) {
+    if (req.body.email === users[user].email && req.body.password === users[user].password) {
+      res.cookie("user_id", users[user].id);
+      return res.redirect("/urls");
+    }
+  }
+  res.status(403); // CAN'T BE ELSE STATEMENT
+  res.send('Wrong email/password! Try again');
 });
 
-// Cookie / POST / logout
+// Logout Cookie / POST / logout
 app.post("/logout", (req, res) => {
   const templateVars = {
     "user_id": req.body.user_id,
