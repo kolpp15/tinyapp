@@ -30,7 +30,7 @@
         <% for(let url in urls) { %>
           <tr>
             <td><%= url %></td>
-            <td><%= urls[url] %></td>
+            <td><%= urls[url].longURL %></td>
             <td>
               <form method="GET" action="/urls/<%= url %>"> <!--we need to GET as we are receiving from client-->
                 <button type="submit" class="btn btn-primary">Edit</button>
