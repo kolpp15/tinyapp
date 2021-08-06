@@ -4,6 +4,7 @@ const bcrypt = require("bcrypt");
 // const cookieParser = require("cookie-parser");
 // const bodyParser = require("body-parser"); //this is obsolete
 const cookieSession = require('cookie-session');
+const { generateRandomString, getUserByEmail, urlsForUser} = require("./helper"); // helper functions
 const app = express();
 const PORT = 8080; // default port 8080
 
@@ -44,22 +45,7 @@ const users = {
   },
 };
 
-// Create random strings
-const generateRandomString = function(length = 6) {
-  return Math.random().toString(20).substr(2, length);
-};
-
-// Function: returns the URLS where the userID is equal to the id of current logged-in user
-// Loop through urlDatabase (forin), match id & urlDatabaseID, if match return object
-const urlsForUser = (id) => {
-  const userObj = {};
-  for (const data in urlDatabase) {
-    if (id === urlDatabase[data].userID) {
-      userObj[data] = urlDatabase[data];
-    }
-  }
-  return userObj;
-};
+// ------------------------------------------------------------------------ FUNCTIONS
 
 // ------------------------------------------------------------------------ LOGIN
 
@@ -77,21 +63,16 @@ app.get("/login", (req, res) => {
 app.post("/login", (req, res) => {
   const testEmail = req.body.email;
   const testPW = req.body.password;
-  console.log("testEMAIL: ", testEmail);
-  console.log("testPW: ", testPW);
+  const existUser = getUserByEmail(req.body.email, users);
+  console.log("User Information:", existUser);
 
   // MUST input both
   if (testEmail === "" || testPW === "") {
     return res.status(400).send(`Please fill in the Email & Password </br><html><body><a href=/>Try Again</a></body></html>`);
   } else {
-    for (const user in users) {
-      const savedEmail = users[user].email;
-      const savedPW = users[user].password;
-
-      if (savedEmail === testEmail && bcrypt.compareSync(testPW, savedPW)) {
-        req.session["user_id"] = users[user].id;
-        res.redirect("/urls");
-      }
+    if (existUser && bcrypt.compareSync(testPW, existUser.password)) {
+      req.session["user_id"] = existUser.id;
+      return res.redirect("/urls");
     }
   }
   return res.status(403).send("Incorrect Email or Password!</br><html><body><a href=/login>Try Again</a></body></html>"); // must be outside the first IF statement. If not, it'll stop in the middle
@@ -110,21 +91,23 @@ app.get("/register", (req, res) => {
 
 // new user / POST /
 app.post("/register", (req, res) => {
+  const testEmail = req.body.email;
+  const testPW = req.body.password;
+
   // both email and password needs to be filled in
-  if (req.body.email === "" || req.body.password === "") {
+  if (testEmail === "" || testPW === "") {
     return res.status(400).send("Please fill in the Email and Password</br><html><body><a href=/register>Try Again</a></body></html>");
   }
-  // no duplicated email addresses.
-  for (const user in users) {
-    if (req.body.email === users[user].email) {
-      return res.status(400).send(`You have already registered with the same email address!</br><html><body><a href=/>Login Page</a></body></html>`);
-    }
+
+  // no duplicated email addresses
+  const dupUser = getUserByEmail(req.body.email, users);
+
+  if (dupUser) {
+    return res.status(400).send(`You have already registered with the same email address!</br><html><body><a href=/>Login Page</a></body></html>`);
   }
 
   // hashed PW registeration
   const newID = generateRandomString();
-  const testEmail = req.body.email;
-  const testPW = req.body.password;
 
   bcrypt
     .genSalt(10)
@@ -149,7 +132,7 @@ app.get("/urls", (req, res) => {
   if (req.session.user_id === undefined) {
     res.redirect("/login");
   } else {
-    const userDatabase = urlsForUser(req.session.user_id);
+    const userDatabase = urlsForUser(req.session.user_id, urlDatabase);
     const templateVars = {
       urls: userDatabase,
       "user_id": req.session.user_id,
@@ -190,12 +173,12 @@ app.post("/urls", (req, res) => {
 
 // parameter based on the database ID
 app.get("/urls/:shortURL", (req, res) => {
-  const userDatabase = urlsForUser(req.session.user_id);
+  const userDatabase = urlsForUser(req.session.user_id, urlDatabase);
   const userShortUrl = req.params.shortURL;
 
   //validate user with registered url
   if (userDatabase[userShortUrl] === undefined) {
-    res.status(404).send(`<html><body><p><b> Please <a href='/login'>log in</a> with a valid account.<b></body></html>`);
+    return res.status(404).send(` ACCESS DENIED </br><html><body><a href=/>Home</a></body></html>`);
   } else {
     const templateVars = {
       shortURL: userShortUrl,
