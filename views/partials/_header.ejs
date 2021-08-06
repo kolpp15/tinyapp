@@ -13,7 +13,7 @@
     </div>
 
     <% if (user_id) { %>
-      <%=  `Logged in As: ` + user_id %>
+      <%=  `Logged in As: ` + users[user_id].email %>
       <form method="POST" action="/logout">
         <button type = "submit" class="btn btn-dark btn-sm">Log out</button>
       </form>

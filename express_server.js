@@ -143,6 +143,7 @@ app.get("/urls/new", (req, res) => {
   if (req.session.user_id === undefined) {
     res.redirect("/login");
   } else {
+    console.log('users :', users);
     const templateVars = {
       "user_id": req.session.user_id,
       users: users,
@@ -180,6 +181,7 @@ app.get("/urls/:shortURL", (req, res) => {
       shortURL: userShortUrl,
       longURL: urlDatabase[userShortUrl].longURL,
       "user_id": req.session.user_id,
+      users: users
     };
     res.render("urls_show", templateVars);
   }
@@ -188,9 +190,9 @@ app.get("/urls/:shortURL", (req, res) => {
 // redirect to the original longURL
 app.get("/u/:shortURL", (req, res) => {
   if (urlDatabase[req.params.shortURL] === undefined) {
-    res.status(404).send("You have requested a non-existent shortURL!");
+    return res.status(404).send("You have requested a non-existent shortURL! </br><html><body><a href=/>HOME</a></body></html>");
   } else {
-    res.redirect(urlDatabase[req.params.shortURL].longURL);
+    return res.redirect(urlDatabase[req.params.shortURL].longURL);
   }
 });
 
