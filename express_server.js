@@ -1,23 +1,21 @@
 const express = require("express");
 const morgan = require("morgan");
 const bcrypt = require("bcrypt");
-// const cookieParser = require("cookie-parser");
-// const bodyParser = require("body-parser"); //this is obsolete
 const cookieSession = require('cookie-session');
 const { generateRandomString, getUserByEmail, urlsForUser} = require("./helper"); // helper functions
 const app = express();
 const PORT = 8080; // default port 8080
+// const bodyParser = require("body-parser"); //this is obsolete
 
 app.use(express.urlencoded({ extended: true })); // use this instead of bodyParser
 app.use(morgan("dev"));
 app.set("view engine", "ejs");
-// app.use(cookieParser());
 app.use(cookieSession({
   name: 'session',
   keys: ['my secret key', 'my another secret key']
 }));
 
-// ------------------------------------------------------------------------ DATABASE
+// ########################################################################################## DATABASES
 
 // URL Database. THIS WILL KEEP ON ADDING ON AS LONG AS THE SERVER IS LIVE
 const urlDatabase = {
@@ -45,9 +43,7 @@ const users = {
   },
 };
 
-// ------------------------------------------------------------------------ FUNCTIONS
-
-// ------------------------------------------------------------------------ LOGIN
+// ########################################################################################## LOGIN
 
 // Login render page / GET /login
 app.get("/login", (req, res) => {
@@ -78,7 +74,7 @@ app.post("/login", (req, res) => {
   return res.status(403).send("Incorrect Email or Password!</br><html><body><a href=/login>Try Again</a></body></html>"); // must be outside the first IF statement. If not, it'll stop in the middle
 });
 
-// ------------------------------------------------------------------------ REGISTER
+// ########################################################################################## REGISTER
 
 // Register / GET /register
 app.get("/register", (req, res) => {
@@ -125,9 +121,9 @@ app.post("/register", (req, res) => {
     });
 });
 
-// ------------------------------------------------------------------------ URLS
+// ########################################################################################## URLS
 
-// list of urls in the database object
+// list of personal urls in the database object
 app.get("/urls", (req, res) => {
   if (req.session.user_id === undefined) {
     res.redirect("/login");
@@ -155,9 +151,9 @@ app.get("/urls/new", (req, res) => {
   }
 });
 
-// new url redirect page *********************
+// new url redirect page
 app.post("/urls", (req, res) => {
-  console.log(req.body);
+  console.log("New url created for : ", req.body);
 
   if (req.session.user_id === undefined) {
     res.status(404).send("Please login first!");
@@ -189,7 +185,7 @@ app.get("/urls/:shortURL", (req, res) => {
   }
 });
 
-// redirect to the original longURL **************
+// redirect to the original longURL
 app.get("/u/:shortURL", (req, res) => {
   if (urlDatabase[req.params.shortURL] === undefined) {
     res.status(404).send("You have requested a non-existent shortURL!");
@@ -207,6 +203,7 @@ app.post("/urls/:shortURL", (req, res) => {
   }
   const newLongURL = req.body.updateURL; // body parser in express //this creates a new value
   urlDatabase[shortURL].longURL = newLongURL;
+  console.log("Long URL changed to : ", newLongURL);
   res.redirect("/urls");
 });
 
@@ -221,7 +218,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   res.redirect("/urls");
 });
 
-// ------------------------------------------------------------------------ LOGOUT
+// ########################################################################################## LOGOUT
 
 // Logout Cookie session / POST / logout
 app.post("/logout", (req, res) => {
@@ -229,10 +226,16 @@ app.post("/logout", (req, res) => {
   res.redirect("/urls");
 });
 
-// ------------------------------------------------------------------------ OTHERS
+// ########################################################################################## OTHERS
 
+// REDIRECT TO HOME /urls
 app.get("/", (req, res) => {
   res.redirect("/urls");
+});
+
+// app listening on PORT
+app.listen(PORT, () => {
+  console.log(`Example app listening on port ${PORT}!`);
 });
 
 // app.get("/urls.json", (req, res) => {
@@ -244,7 +247,4 @@ app.get("/", (req, res) => {
 //   res.send("<html><body>Hello <b>World</b></body></html>\n");
 // });
 
-// app listening on PORT
-app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}!`);
-});
+
